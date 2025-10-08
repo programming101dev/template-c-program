@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <p101_c/p101_string.h>
 #include <p101_convert/integer.h>
+#include <p101_posix/p101_string.h>
 #include <p101_posix/p101_unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -161,9 +162,30 @@ static void parse_arguments(const struct p101_env *env, struct p101_error *err, 
 
             for(int i = optind; i < argc && off < sizeof msg; ++i)
             {
-                off += (size_t)snprintf(msg + off, sizeof msg - off, " %s", argv[i]);
+                size_t rem;
+
+                rem = sizeof msg - off; /* bytes left including NUL */
+
+                if(rem <= 1)
+                {
+                    break; /* no room for anything */
+                }
+
+                /* append a single leading space if possible */
+                msg[off++] = ' ';
+                rem        = sizeof msg - off; /* recompute remaining space */
+
+                if(rem > 0)
+                {
+                    /* copy at most rem-1 chars to leave room for the NUL */
+                    size_t ncopy = p101_strnlen(env, argv[i], rem - 1);
+                    p101_memcpy(env, msg + off, argv[i], ncopy);
+                    off += ncopy;
+                    msg[off] = '\0'; /* always NUL-terminate */
+                }
             }
 
+            msg[sizeof msg - 1] = '\0';
             P101_ERROR_RAISE_USER(err, msg, ERR_USAGE);
         }
     }
