@@ -188,6 +188,7 @@ _Noreturn static void usage(const struct p101_env *env, struct p101_error *err, 
 {
     P101_TRACE(env);
 
+#ifndef P101_SUPPRESS_USAGE_TEXT
     if(message)
     {
         p101_fprintf(env, err, stderr, "%s\n\n", message);
@@ -199,5 +200,10 @@ _Noreturn static void usage(const struct p101_env *env, struct p101_error *err, 
     p101_fputs(env, err, "  -v                Enable verbose tracing\n", stderr);
     p101_fputs(env, err, "  -V                Enable FSM state-change notifiers\n", stderr);
     p101_fputs(env, err, "  -d <delay>        delay in seconds (required)\n", stderr);
+#else
+    (void)err;
+    (void)program_name;
+    (void)message;
+#endif
     p101_exit(env, exit_code);
 }

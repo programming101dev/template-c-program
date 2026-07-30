@@ -31,11 +31,12 @@ static jmp_buf g_fuzz_exit_jmp;
 
 /* The redirected p101_exit(): unwind back into the harness instead of terminating
  * the process. _Noreturn matches p101_exit()'s contract (usage() is _Noreturn);
- * p101_longjmp guarantees it never actually returns. */
+ * longjmp must execute directly in this stack frame's setjmp contract. */
 _Noreturn void p101_fuzz_exit(const struct p101_env *env, int code)
 {
+    (void)env;
     (void)code;
-    p101_longjmp(env, g_fuzz_exit_jmp, 1);
+    longjmp(g_fuzz_exit_jmp, 1);
 }
 
 #define FUZZ_MAX_ARGS 64
