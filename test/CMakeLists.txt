@@ -45,6 +45,9 @@ function(p101_add_test name)
     add_executable(${name} ${ARGN})
     target_include_directories(${name} PRIVATE ${_P101_INC_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}/../include")
     target_link_libraries(${name} PRIVATE unity ${_P101_RESOLVED} m)
+    # Preserve every admitted library directory for transitive p101 shared
+    # library dependencies when this template is copied outside the workspace.
+    set_target_properties(${name} PROPERTIES BUILD_RPATH "${_P101_LIB_DIRS}")
     target_compile_options(${name} PRIVATE ${_COV})
     target_link_options(${name} PRIVATE ${_COV})
     add_test(NAME ${name} COMMAND ${name})
