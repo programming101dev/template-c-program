@@ -6,38 +6,18 @@
  * parse_arguments() is static, so we #include the whole cli.c: that makes it
  * visible AND compiles it WITH the fuzzer instrumentation, which is what makes
  * this coverage-guided (watch "cov:" climb) instead of a blind black-box run.
- * Two collisions are handled by -D defines in fuzz/CMakeLists.txt, so nothing
- * in src/ has to change:
- *
- *   -Dp101_exit=p101_fuzz_exit usage() (the -h / bad-usage path) is _Noreturn
- *                              and calls p101_exit(). Redirect it into a
- *                              longjmp back here so -h is a normal input, not
- *                              the end of the fuzz process.
- *
+ * The parser reports help and errors as data, so every input returns normally
+ * to the harness.
  */
 #include <p101_c/p101_stdlib.h>
 #include <p101_c/p101_string.h>
-#include <setjmp.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-/* Jump target for the redirected p101_exit() -- see fuzz/CMakeLists.txt. */
-static jmp_buf g_fuzz_exit_jmp;
-
-/* The code under test. p101_exit -> p101_fuzz_exit. */
+/* The code under test. */
 #include "../src/cli.c"
-
-/* The redirected p101_exit(): unwind back into the harness instead of terminating
- * the process. _Noreturn matches p101_exit()'s contract (usage() is _Noreturn);
- * longjmp must execute directly in this stack frame's setjmp contract. */
-_Noreturn void p101_fuzz_exit(const struct p101_env *env, int code)
-{
-    (void)env;
-    (void)code;
-    longjmp(g_fuzz_exit_jmp, 1);
-}
 
 #define FUZZ_MAX_ARGS 64
 
@@ -103,12 +83,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     p101_memset(env, &args, 0, sizeof(args));
 
-    /* If parse_arguments takes the -h path, usage()->p101_exit()->p101_longjmp lands
-     * here with a non-zero return -- a normal outcome, not a crash. */
-    if(setjmp(g_fuzz_exit_jmp) == 0)
-    {
-        parse_arguments(env, err, argc, argv, &args);
-    }
+    parse_arguments(env, err, argc, argv, &args);
 
 done:
     p101_free(env, buf);

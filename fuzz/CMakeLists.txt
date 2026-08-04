@@ -42,9 +42,7 @@ set(_FUZZ_FLAGS -fsanitize=fuzzer,address,undefined -g -O1)
 
 add_executable(fuzz fuzz_parse.c)
 
-# Reach the static parser without editing src/: redirect exit() (usage() is
-# _Noreturn) so the -h path is a longjmp, not a fake crash.
-target_compile_definitions(fuzz PRIVATE p101_exit=p101_fuzz_exit P101_SUPPRESS_USAGE_TEXT)
+target_compile_definitions(fuzz PRIVATE P101_SUPPRESS_USAGE_TEXT)
 
 target_include_directories(fuzz PRIVATE ${_P101_INC_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}/../include")
 target_compile_options(fuzz PRIVATE ${_FUZZ_FLAGS})

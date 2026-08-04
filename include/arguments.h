@@ -9,6 +9,7 @@ struct arguments
     unsigned int delay;
     bool         verbose;
     bool         fsm_verbose;
+    bool         show_help;
 };
 
 #endif    // TEMPLATE_C_PROGRAM_ARGUMENTS_H

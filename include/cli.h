@@ -6,5 +6,6 @@
 #include <p101_error/error.h>
 
 void process_arguments(const struct p101_env *env, struct p101_error *err, int argc, char *argv[], struct arguments *args);
+void print_usage(const struct p101_env *env, struct p101_error *err, const char *program_name, int exit_code, const char *message);
 
 #endif    // TEMPLATE_C_PROGRAM_CLI_H

@@ -1,5 +1,6 @@
 #include "arguments.h"
 #include "cli.h"
+#include "errors.h"
 #include "fsm.h"
 #include <p101_c/p101_stdio.h>
 #include <p101_c/p101_stdlib.h>
@@ -21,6 +22,13 @@ int main(int argc, char *argv[])
     p101_memset(env, &args, 0, sizeof(args));
     process_arguments(env, err, argc, argv, &args);
 
+    if(args.show_help && p101_error_has_no_error(err))
+    {
+        print_usage(env, err, argv[0], EXIT_SUCCESS, NULL);
+        ret_val = EXIT_SUCCESS;
+        goto done;
+    }
+
     if(p101_error_has_error(err))
     {
         goto done;
@@ -36,7 +44,14 @@ int main(int argc, char *argv[])
 done:
     if(p101_error_has_error(err))
     {
-        p101_fprintf(env, err, stderr, "%s\n", p101_error_get_message(err));
+        if(p101_error_is_error(err, P101_ERROR_USER, ERR_USAGE))
+        {
+            print_usage(env, err, argv[0], EXIT_FAILURE, p101_error_get_message(err));
+        }
+        else
+        {
+            p101_fprintf(env, err, stderr, "%s\n", p101_error_get_message(err));
+        }
         ret_val = EXIT_FAILURE;
     }
 

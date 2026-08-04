@@ -2,17 +2,16 @@
 #include "errors.h"
 #include <p101_c/p101_ctype.h>
 #include <p101_c/p101_stdio.h>
-#include <p101_c/p101_stdlib.h>
 #include <p101_c/p101_string.h>
 #include <p101_cli/cli.h>
 #include <p101_convert/integer.h>
 #include <p101_text/text.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-static void           parse_arguments(const struct p101_env *env, struct p101_error *err, int argc, char *argv[], struct arguments *args);
-static void           check_arguments(const struct p101_env *env, struct p101_error *err, const struct arguments *args);
-static void           convert_arguments(const struct p101_env *env, struct p101_error *err, struct arguments *args);
-_Noreturn static void usage(const struct p101_env *env, struct p101_error *err, const char *program_name, int exit_code, const char *message);
+static void parse_arguments(const struct p101_env *env, struct p101_error *err, int argc, char *argv[], struct arguments *args);
+static void check_arguments(const struct p101_env *env, struct p101_error *err, const struct arguments *args);
+static void convert_arguments(const struct p101_env *env, struct p101_error *err, struct arguments *args);
 
 enum
 {
@@ -24,7 +23,7 @@ void process_arguments(const struct p101_env *env, struct p101_error *err, int a
     P101_TRACE(env);
     parse_arguments(env, err, argc, argv, args);
 
-    if(p101_error_has_error(err))
+    if(args->show_help || p101_error_has_error(err))
     {
         goto done;
     }
@@ -39,13 +38,7 @@ void process_arguments(const struct p101_env *env, struct p101_error *err, int a
     convert_arguments(env, err, args);
 
 done:
-    if(p101_error_is_error(err, P101_ERROR_USER, ERR_USAGE))
-    {
-        const char *msg;
-
-        msg = p101_error_get_message(err);
-        usage(env, err, argv[0], EXIT_FAILURE, msg);
-    }
+    return;
 }
 
 static void parse_arguments(const struct p101_env *env, struct p101_error *err, int argc, char *argv[], struct arguments *args)
@@ -62,7 +55,8 @@ static void parse_arguments(const struct p101_env *env, struct p101_error *err, 
         {
             case 'h':
             {
-                usage(env, err, argv[0], EXIT_SUCCESS, NULL);
+                args->show_help = true;
+                break;
             }
             case 'v':
             {
@@ -184,26 +178,32 @@ static void convert_arguments(const struct p101_env *env, struct p101_error *err
     }
 }
 
-_Noreturn static void usage(const struct p101_env *env, struct p101_error *err, const char *program_name, int exit_code, const char *message)
+void print_usage(const struct p101_env *env, struct p101_error *err, const char *program_name, int exit_code, const char *message)
 {
+#ifndef P101_SUPPRESS_USAGE_TEXT
+    FILE *stream;
+#endif
+
     P101_TRACE(env);
 
 #ifndef P101_SUPPRESS_USAGE_TEXT
+    stream = (exit_code == EXIT_SUCCESS) ? stdout : stderr;
+
     if(message)
     {
-        p101_fprintf(env, err, stderr, "%s\n\n", message);
+        p101_fprintf(env, err, stream, "%s\n\n", message);
     }
 
-    p101_fprintf(env, err, stderr, "Usage: %s [-h] [-v] [-V] -d <delay>\n", program_name);
-    p101_fputs(env, err, "Options:\n", stderr);
-    p101_fputs(env, err, "  -h                Display this help message and exit\n", stderr);
-    p101_fputs(env, err, "  -v                Enable verbose tracing\n", stderr);
-    p101_fputs(env, err, "  -V                Enable FSM state-change notifiers\n", stderr);
-    p101_fputs(env, err, "  -d <delay>        delay in seconds (required)\n", stderr);
+    p101_fprintf(env, err, stream, "Usage: %s [-h] [-v] [-V] -d <delay>\n", program_name);
+    p101_fputs(env, err, "Options:\n", stream);
+    p101_fputs(env, err, "  -h                Display this help message and exit\n", stream);
+    p101_fputs(env, err, "  -v                Enable verbose tracing\n", stream);
+    p101_fputs(env, err, "  -V                Enable FSM state-change notifiers\n", stream);
+    p101_fputs(env, err, "  -d <delay>        delay in seconds (required)\n", stream);
 #else
     (void)err;
+    (void)exit_code;
     (void)program_name;
     (void)message;
 #endif
-    p101_exit(env, exit_code);
 }
