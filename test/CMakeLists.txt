@@ -24,6 +24,25 @@ separate_arguments(P101_PUBLIC_LINK_DIRS_LIST NATIVE_COMMAND "${P101_PUBLIC_LINK
 set(_P101_INC_DIRS ${P101_PUBLIC_INCLUDE_DIRS_LIST} /usr/local/include /opt/homebrew/include /opt/local/include)
 set(_P101_LIB_DIRS ${P101_PUBLIC_LINK_DIRS_LIST} /usr/local/lib /usr/local/lib64 /opt/homebrew/lib /opt/local/lib)
 
+# Apple Clang otherwise records its dynamic ASan runtime after the p101 shared
+# libraries, which makes ASan abort before main with "loaded too late".
+set(P101_ASAN_RUNTIME "")
+if (APPLE AND CMAKE_C_COMPILER_ID MATCHES "Clang" AND
+    CMAKE_C_FLAGS MATCHES "(^|[ ;])-fsanitize=address($|[ ;])")
+    execute_process(
+            COMMAND "${CMAKE_C_COMPILER}" --print-resource-dir
+            OUTPUT_VARIABLE P101_CLANG_RESOURCE_DIR
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET)
+    set(P101_ASAN_RUNTIME
+        "${P101_CLANG_RESOURCE_DIR}/lib/darwin/libclang_rt.asan_osx_dynamic.dylib")
+    if (NOT EXISTS "${P101_ASAN_RUNTIME}")
+        message(FATAL_ERROR
+                "AddressSanitizer runtime not found for ${CMAKE_C_COMPILER}: "
+                "${P101_ASAN_RUNTIME}")
+    endif ()
+endif ()
+
 set(_P101_RESOLVED "")
 foreach (_l IN LISTS P101_LIBS)
     unset(_P101_LIB_${_l} CACHE)
@@ -44,6 +63,9 @@ endforeach ()
 function(p101_add_test name)
     add_executable(${name} ${ARGN})
     target_include_directories(${name} PRIVATE ${_P101_INC_DIRS} "${CMAKE_CURRENT_SOURCE_DIR}/../include")
+    if (P101_ASAN_RUNTIME)
+        target_link_libraries(${name} PRIVATE "${P101_ASAN_RUNTIME}")
+    endif ()
     target_link_libraries(${name} PRIVATE unity ${_P101_RESOLVED} m)
     # Preserve every admitted library directory for transitive p101 shared
     # library dependencies when this template is copied outside the workspace.

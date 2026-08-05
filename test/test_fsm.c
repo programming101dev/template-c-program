@@ -1,15 +1,24 @@
+#include "fsm.h" /* run_fsm(), struct arguments (via arguments.h) */
 #include "unity.h"
-#include "fsm.h"                 /* run_fsm(), struct arguments (via arguments.h) */
 #include <p101_env/env.h>
 #include <p101_error/error.h>
 #include <stdbool.h>
-#include <stdlib.h>              /* EXIT_SUCCESS */
+#include <stdlib.h> /* EXIT_SUCCESS */
 
 static struct p101_error *error;
 static struct p101_env   *env;
 
-void setUp(void)    { error = p101_error_create(false); env = p101_env_create(error, NULL); }
-void tearDown(void) { p101_env_destroy(env); p101_error_destroy(error); }
+void setUp(void)
+{
+    error = p101_error_create(false);
+    env   = p101_env_create(error, NULL);
+}
+
+void tearDown(void)
+{
+    p101_env_destroy(env);
+    p101_error_destroy(error);
+}
 
 /* run_fsm drives the state machine A -> B -> C -> exit. A clean run returns
    EXIT_SUCCESS and raises no error. This exercises run_fsm and, through the
