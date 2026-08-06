@@ -3,7 +3,16 @@
 #include <p101_c/p101_stdio.h>
 #include <p101_c/p101_stdlib.h>
 #include <p101_fsm/fsm.h>
-#include <p101_process/process.h>
+#include <p101_process/p101_sched.h>
+#include <p101_process/p101_setjmp.h>
+#include <p101_process/p101_signal.h>
+#include <p101_process/p101_spawn.h>
+#include <p101_process/p101_stdio.h>
+#include <p101_process/p101_stdlib.h>
+#include <p101_process/p101_unistd.h>
+#include <p101_process/sys/p101_resource.h>
+#include <p101_process/sys/p101_times.h>
+#include <p101_process/sys/p101_wait.h>
 
 static void a(const struct p101_env *env, struct p101_error *err, void *arg, struct p101_fsm_effect_sink *sink, struct p101_fsm_decision *decision);
 static void b(const struct p101_env *env, struct p101_error *err, void *arg, struct p101_fsm_effect_sink *sink, struct p101_fsm_decision *decision);

@@ -3,9 +3,19 @@
 #include <p101_c/p101_ctype.h>
 #include <p101_c/p101_stdio.h>
 #include <p101_c/p101_string.h>
-#include <p101_cli/cli.h>
+#include <p101_cli/p101_getopt.h>
+#include <p101_cli/p101_stdlib.h>
+#include <p101_cli/p101_unistd.h>
 #include <p101_convert/integer.h>
-#include <p101_text/text.h>
+#include <p101_text/p101_ctype.h>
+#include <p101_text/p101_regex.h>
+#include <p101_text/p101_stdlib.h>
+#include <p101_text/p101_string.h>
+#include <p101_text/p101_strings.h>
+#include <p101_text/p101_unistd.h>
+#include <p101_text/p101_wchar.h>
+#include <p101_text/p101_wctype.h>
+#include <p101_text/p101_wordexp.h>
 #include <stdio.h>
 #include <stdlib.h>
 
