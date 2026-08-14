@@ -48,7 +48,7 @@ set(main_LINK_LIBRARIES
         p101_cli
         p101_process
         p101_text
-        p101_fsm
+        p101_transition
         p101_convert
         m
 )
